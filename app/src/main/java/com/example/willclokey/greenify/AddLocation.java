@@ -8,12 +8,14 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -25,7 +27,7 @@ import java.net.URL;
 
 public class AddLocation extends Activity {
 
-    Context context = this;
+    final Context context = this;
 
     double lat;
     double lon;
@@ -136,7 +138,8 @@ public class AddLocation extends Activity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            //Do anything with response..
+            Toast.makeText(context, "The location was added.", Toast.LENGTH_LONG).show();
+            NavUtils.navigateUpFromSameTask((Activity)context);
         }
 
     }
