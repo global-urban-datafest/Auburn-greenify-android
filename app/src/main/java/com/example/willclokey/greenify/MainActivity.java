@@ -3,34 +3,22 @@ package com.example.willclokey.greenify;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 
 public class MainActivity extends Activity implements LocationListener {
@@ -51,7 +39,7 @@ public class MainActivity extends Activity implements LocationListener {
 
         firstbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/hydration/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/1/0/0");
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -61,7 +49,7 @@ public class MainActivity extends Activity implements LocationListener {
 
         secondbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/wifi/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/2/lat/lon");
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -70,7 +58,7 @@ public class MainActivity extends Activity implements LocationListener {
         });
         thirdbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/chargers/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/3/lat/lon");
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -79,7 +67,7 @@ public class MainActivity extends Activity implements LocationListener {
         });
         fourthbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/recycling/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/4/lat/lon");
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -88,7 +76,8 @@ public class MainActivity extends Activity implements LocationListener {
         });
         fifthbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/bikerental/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/5" +
+                        "/lat/lon");
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -150,35 +139,87 @@ public class MainActivity extends Activity implements LocationListener {
 
         @Override
         protected String doInBackground(String... uri) {
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpResponse response;
-            String responseString = null;
+            String urlString = uri[0]; // URL to call
+            String result = "";
+            HttpURLConnection urlConnection;
+
+            // HTTP Get
             try {
-                response = httpclient.execute(new HttpGet(uri[0]));
-                StatusLine statusLine = response.getStatusLine();
-                if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    response.getEntity().writeTo(out);
-                    responseString = out.toString();
-                    out.close();
-                } else{
-                    //Closes the connection.
-                    response.getEntity().getContent().close();
-                    throw new IOException(statusLine.getReasonPhrase());
+                URL url = new URL(urlString);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setReadTimeout(10000);
+                urlConnection.setConnectTimeout(15000);
+                urlConnection.setRequestMethod("GET");
+                urlConnection.setDoInput(true);
+                urlConnection.connect();
+
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                String data = reader.readLine();
+                while (data != null){
+                    result += data;
+                    data = reader.readLine();
                 }
-            } catch (ClientProtocolException e) {
-                //TODO Handle problems..
-            } catch (IOException e) {
-                //TODO Handle problems..
+            } catch (Exception e ) {
+                System.out.println(e.getMessage());
+                return e.getMessage();
             }
-            return responseString;
+
+            return result;
+            /*DefaultHttpClient   httpclient = new DefaultHttpClient(new BasicHttpParams());
+            HttpGet httpget = new HttpGet("http://greenify.mybluemix.net");
+
+            InputStream inputStream = null;
+            String result = null;
+            try {
+                HttpResponse response = httpclient.execute(httpget);
+                HttpEntity entity = response.getEntity();
+
+                inputStream = entity.getContent();
+                // json is UTF-8 by default
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+                StringBuilder sb = new StringBuilder();
+
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
+                result = sb.toString();
+            } catch (Exception e) {
+                // Oops
+            }
+            finally {
+                try{if(inputStream != null)inputStream.close();}catch(Exception squish){}
+            }
+
+            return result;
+
+            JSONArray jObject;
+            JSONArray jArray = jObject.getJSONArray();
+
+            for (int i=0; i < jArray.length(); i++)
+            {
+                try {
+                    JSONObject oneObject = jArray.getJSONObject(i);
+                    // Pulling items from the array
+                    double oneObjectsItem = oneObject.getDouble("latitude");
+                    double oneObjectsItem2 = oneObject.getDouble("longitude");
+                    String oneObjectsItem3 = oneObject.getString("name");
+                } catch (JSONException e) {
+                    // Oops
+                }
+            }*/
         }
+
 
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
+            System.out.println(result);
             //Do anything with response..
         }
+
     }
 
 
