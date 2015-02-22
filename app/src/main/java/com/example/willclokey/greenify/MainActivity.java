@@ -3,8 +3,10 @@ package com.example.willclokey.greenify;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,12 +15,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 
 public class MainActivity extends Activity implements LocationListener {
@@ -31,6 +38,24 @@ public class MainActivity extends Activity implements LocationListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        String bestProvider = locationManager.getBestProvider(criteria, false);
+        Location location = locationManager.getLastKnownLocation(bestProvider);
+
+        try
+        {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        }
+
+        catch (NullPointerException e)
+
+        {
+            latitude = -1.0;
+            longitude = -1.0;
+        }
+
         Button firstbutton = (Button) findViewById(R.id.button1);
         Button secondbutton = (Button) findViewById(R.id.button2);
         Button thirdbutton = (Button) findViewById(R.id.button3);
@@ -41,48 +66,45 @@ public class MainActivity extends Activity implements LocationListener {
 
         firstbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
+                //Toast.makeText(context, "Latitude: " + latitude + "\nLongitude: " + longitude, Toast.LENGTH_LONG).show();
                 new RequestTask().execute("http://greenify.mybluemix.net/1/" + latitude + "/" + longitude);
-                Intent i = new Intent(context, MapsActivity.class);
+                /*Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
-                startActivity(i);
+                startActivity(i);*/
             }
         });
 
         secondbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
                 new RequestTask().execute("http://greenify.mybluemix.net/2/" + latitude + "/" + longitude);
-                Intent i = new Intent(context, MapsActivity.class);
+                /*Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
-                startActivity(i);
+                startActivity(i);*/
             }
         });
         thirdbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
                 new RequestTask().execute("http://greenify.mybluemix.net/3/" + latitude + "/" + longitude);
-                Intent i = new Intent(context, MapsActivity.class);
+                /*Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
-                startActivity(i);
+                startActivity(i);*/
             }
         });
         fourthbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
                 new RequestTask().execute("http://greenify.mybluemix.net/4/" + latitude + "/" + longitude);
-                Intent i = new Intent(context, MapsActivity.class);
+                /*Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
-                startActivity(i);
+                startActivity(i);*/
             }
         });
         fifthbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
                 new RequestTask().execute("http://greenify.mybluemix.net/5/" + latitude + "/" + longitude);
-                Intent i = new Intent(context, MapsActivity.class);
-                i.putExtra("latitude", latitude);
-                i.putExtra("longitude", longitude);
-                startActivity(i);
             }
         });
 
@@ -121,7 +143,6 @@ public class MainActivity extends Activity implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-
         latitude = (location.getLatitude());
         longitude = (location.getLongitude());
     }
@@ -182,11 +203,31 @@ public class MainActivity extends Activity implements LocationListener {
 
         @Override
         protected void onPostExecute(String result) {
+            //System.out.println(result);
             super.onPostExecute(result);
-            //Do anything with response..
+
+            parseJson(result);
         }
 
     }
 
+    public void parseJson(String result) {
+        try {
+            JSONArray stuff = new JSONArray(result);
+            ArrayList<String[]> pins = new ArrayList<String[]>();
 
+            for (int i = 0; i < stuff.length(); i++) {
+                JSONObject obj = stuff.getJSONObject(i);
+                String[] blah = {obj.getString("lat"), obj.getString("lon"), obj.getString("name")};
+                pins.add(blah);
+            }
+
+            Intent i = new Intent(context, MapsActivity.class);
+            i.putExtra("pins", pins);
+            startActivity(i);
+        } catch (JSONException e) {
+            Toast.makeText(this, "Error with cache ID, try again!", Toast.LENGTH_SHORT).show();
+            System.out.println(e.getMessage());
+        }
+    }
 }
