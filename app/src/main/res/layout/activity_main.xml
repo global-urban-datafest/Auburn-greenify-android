@@ -14,7 +14,8 @@
         android:textSize="30dp"
         android:textAlignment="center"
         android:elegantTextHeight="true"
-        android:layout_alignParentEnd="false" />
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true" />
 
     <ScrollView
         android:layout_width="fill_parent"
@@ -62,5 +63,14 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Location"
+        android:id="@+id/button6"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

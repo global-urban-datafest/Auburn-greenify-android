@@ -36,10 +36,12 @@ public class MainActivity extends Activity implements LocationListener {
         Button thirdbutton = (Button) findViewById(R.id.button3);
         Button fourthbutton = (Button) findViewById(R.id.button4);
         Button fifthbutton = (Button) findViewById(R.id.button5);
+        Button sixthbutton = (Button) findViewById(R.id.button6);
+
 
         firstbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/1/0/0");
+                new RequestTask().execute("http://greenify.mybluemix.net/1/" + latitude + "/" + longitude);
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -49,7 +51,7 @@ public class MainActivity extends Activity implements LocationListener {
 
         secondbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/2/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/2/" + latitude + "/" + longitude);
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -58,7 +60,7 @@ public class MainActivity extends Activity implements LocationListener {
         });
         thirdbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/3/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/3/" + latitude + "/" + longitude);
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -67,7 +69,7 @@ public class MainActivity extends Activity implements LocationListener {
         });
         fourthbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/4/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/4/" + latitude + "/" + longitude);
                 Intent i = new Intent(context, MapsActivity.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
@@ -76,9 +78,17 @@ public class MainActivity extends Activity implements LocationListener {
         });
         fifthbutton.setOnClickListener( new View.OnClickListener() {
             public void onClick(View v) {
-                new RequestTask().execute("http://greenify.mybluemix.net/5" +
-                        "/lat/lon");
+                new RequestTask().execute("http://greenify.mybluemix.net/5/" + latitude + "/" + longitude);
                 Intent i = new Intent(context, MapsActivity.class);
+                i.putExtra("latitude", latitude);
+                i.putExtra("longitude", longitude);
+                startActivity(i);
+            }
+        });
+
+        sixthbutton.setOnClickListener( new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent i = new Intent(context, AddLocation.class);
                 i.putExtra("latitude", latitude);
                 i.putExtra("longitude", longitude);
                 startActivity(i);
@@ -167,56 +177,12 @@ public class MainActivity extends Activity implements LocationListener {
             }
 
             return result;
-            /*DefaultHttpClient   httpclient = new DefaultHttpClient(new BasicHttpParams());
-            HttpGet httpget = new HttpGet("http://greenify.mybluemix.net");
-
-            InputStream inputStream = null;
-            String result = null;
-            try {
-                HttpResponse response = httpclient.execute(httpget);
-                HttpEntity entity = response.getEntity();
-
-                inputStream = entity.getContent();
-                // json is UTF-8 by default
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
-                StringBuilder sb = new StringBuilder();
-
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-                result = sb.toString();
-            } catch (Exception e) {
-                // Oops
-            }
-            finally {
-                try{if(inputStream != null)inputStream.close();}catch(Exception squish){}
-            }
-
-            return result;
-
-            JSONArray jObject;
-            JSONArray jArray = jObject.getJSONArray();
-
-            for (int i=0; i < jArray.length(); i++)
-            {
-                try {
-                    JSONObject oneObject = jArray.getJSONObject(i);
-                    // Pulling items from the array
-                    double oneObjectsItem = oneObject.getDouble("latitude");
-                    double oneObjectsItem2 = oneObject.getDouble("longitude");
-                    String oneObjectsItem3 = oneObject.getString("name");
-                } catch (JSONException e) {
-                    // Oops
-                }
-            }*/
         }
 
 
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            System.out.println(result);
             //Do anything with response..
         }
 
